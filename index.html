@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<title>SkillBridge - Career Selection</title>
+
+<style>
+
+body{
+font-family: Arial, sans-serif;
+background: linear-gradient(120deg,#4facfe,#00f2fe);
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+margin:0;
+}
+
+.container{
+background:white;
+padding:40px;
+border-radius:10px;
+box-shadow:0 8px 20px rgba(0,0,0,0.2);
+width:400px;
+text-align:center;
+}
+
+h1{
+color:#333;
+}
+
+select{
+width:100%;
+padding:10px;
+margin-top:15px;
+font-size:16px;
+border-radius:5px;
+border:1px solid #ccc;
+}
+
+button{
+margin-top:20px;
+padding:10px 20px;
+background:#4facfe;
+border:none;
+color:white;
+font-size:16px;
+border-radius:5px;
+cursor:pointer;
+}
+
+button:hover{
+background:#0077ff;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>SkillBridge</h1>
+
+<h3>Select Your Career</h3>
+
+<form action="/select_career" method="POST">
+
+<select name="career" required>
+
+<option value="">-- Choose Career --</option>
+
+<option value="Software Developer">Software Developer</option>
+
+<option value="Data Scientist">Data Scientist</option>
+
+<option value="UI Designer">UI Designer</option>
+
+<option value="Cyber Security Analyst">Cyber Security Analyst</option>
+
+<option value="AI Engineer">AI Engineer</option>
+
+</select>
+
+<button type="submit">Continue</button>
+
+</form>
+
+</div>
+
+</body>
+</html>
