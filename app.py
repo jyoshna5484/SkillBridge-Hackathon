@@ -1,324 +1,110 @@
-from flask import Flask, render_template, request
+# ============================================================
+#  SkillBridge — Flask Backend (app.py)
+#  Run:  pip install flask
+#        python app.py
+#  Open: http://localhost:5000
+# ============================================================
+
+from flask import Flask, jsonify, request, render_template_string, send_from_directory
+from skillbridge_data import CAREERS
+import os, json
 
 app = Flask(__name__)
 
-# Career and Required Skills Database
-career_skills = {
-    "Software Developer": [
-        "Python",
-        "Data Structures",
-        "Algorithms",
-        "Git",
-        "Databases"
-    ],
-
-    "Data Scientist": [
-        "Python",
-        "Statistics",
-        "Machine Learning",
-        "SQL",
-        "Data Visualization"
-    ],
-
-    "Web Developer": [
-        "HTML",
-        "CSS",
-        "JavaScript",
-        "React",
-        "Git"
-    ],
-
-    "AI Engineer": [
-        "Python",
-        "Machine Learning",
-        "Deep Learning",
-        "TensorFlow",
-        "Mathematics"
-    ]
-}
-
-# Home Page (Career Selection)
-@app.route('/')
-def home():
-    return render_template("index.html", careers=career_skills.keys())
+# ── Helper: find career by id ────────────────────────────────
+def find_career(career_id):
+    return next((c for c in CAREERS if c["id"] == career_id), None)
 
 
-# Show Required Skills
-@app.route('/skills', methods=['POST'])
-def skills():
+# ════════════════════════════════════════════════════════════
+#  API ROUTES  (called by the HTML frontend via fetch)
+# ════════════════════════════════════════════════════════════
 
-    career = request.form['career']
-
-    required_skills = career_skills[career]
-
-    return render_template(
-        "skills.html",
-        career=career,
-        skills=required_skills
-    )
+# GET /api/careers  →  returns all careers (id, icon, name, cat, desc)
+@app.route("/api/careers")
+def get_careers():
+    data = [{"id":c["id"],"icon":c["icon"],"name":c["name"],
+             "cat":c["cat"],"desc":c["desc"]} for c in CAREERS]
+    return jsonify({"careers": data, "total": len(data)})
 
 
-# Calculate Readiness Score
-@app.route('/result', methods=['POST'])
-def result():
-
-    career = request.form['career']
-
-    required_skills = career_skills[career]
-
-    selected_skills = request.form.getlist('skills')
-
-    total = len(required_skills)
-
-    completed = len(selected_skills)
-
-    score = int((completed / total) * 100)
-
-    missing = list(set(required_skills) - set(selected_skills))
-
-    return render_template(
-        "result.html",
-        career=career,
-        score=score,
-        missing=missing
-    )
+# GET /api/career/<id>  →  returns full career details
+@app.route("/api/career/<career_id>")
+def get_career(career_id):
+    career = find_career(career_id)
+    if not career:
+        return jsonify({"error": "Career not found"}), 404
+    return jsonify(career)
 
 
-if __name__ == '__main__':
-    app.run(debug=True)
-career_skills = {
+# POST /api/progress  →  send known skills, get back score + missing + roadmap
+# Body: { "career_id": "swe", "known_skills": ["python", "git"] }
+@app.route("/api/progress", methods=["POST"])
+def get_progress():
+    body       = request.get_json()
+    career_id  = body.get("career_id", "")
+    known      = set(body.get("known_skills", []))
 
-"Software Developer": [
-"Python",
-"Java",
-"C++",
-"Data Structures",
-"Algorithms",
-"Object Oriented Programming",
-"Git",
-"Databases",
-"Problem Solving",
-"Software Design"
-],
+    career = find_career(career_id)
+    if not career:
+        return jsonify({"error": "Career not found"}), 404
 
-"Software Engineer": [
-"Programming (Java/Python/C++)",
-"Data Structures",
-"Algorithms",
-"System Design",
-"Version Control (Git)",
-"Databases",
-"Testing",
-"Debugging"
-],
+    total   = len(career["skills"])
+    done    = sum(1 for s in career["skills"] if s["id"] in known)
+    pct     = round((done / total) * 100)
+    missing = [s for s in career["skills"] if s["id"] not in known]
 
-"Frontend Developer": [
-"HTML",
-"CSS",
-"JavaScript",
-"React",
-"Responsive Design",
-"Web Accessibility",
-"Git",
-"UI Frameworks"
-],
+    # build resources only for missing skills
+    resources = {}
+    for s in missing:
+        name = s["name"]
+        if name in career["resources"]:
+            resources[name] = career["resources"][name]
 
-"Backend Developer": [
-"Python",
-"Java",
-"Node.js",
-"REST APIs",
-"Databases",
-"Server Management",
-"Authentication",
-"Microservices"
-],
+    return jsonify({
+        "career_id"     : career_id,
+        "career_name"   : career["name"],
+        "total_skills"  : total,
+        "known_count"   : done,
+        "readiness_pct" : pct,
+        "missing_skills": missing,
+        "roadmap"       : career["roadmap"],
+        "resources"     : resources,
+        "career_ready"  : pct == 100
+    })
 
-"Full Stack Developer": [
-"HTML",
-"CSS",
-"JavaScript",
-"React",
-"Node.js",
-"Databases",
-"APIs",
-"Git",
-"Deployment"
-],
 
-"Web Developer": [
-"HTML",
-"CSS",
-"JavaScript",
-"Web Frameworks",
-"Git",
-"Responsive Design",
-"Web Hosting",
-"SEO Basics"
-],
+# GET /api/categories  →  returns all unique categories
+@app.route("/api/categories")
+def get_categories():
+    cats = sorted(set(c["cat"] for c in CAREERS))
+    return jsonify({"categories": cats})
 
-"Mobile App Developer": [
-"Java",
-"Kotlin",
-"Flutter",
-"Dart",
-"Android Studio",
-"APIs",
-"Firebase",
-"UI Design"
-],
 
-"Data Scientist": [
-"Python",
-"Statistics",
-"Machine Learning",
-"Pandas",
-"NumPy",
-"SQL",
-"Data Visualization",
-"Deep Learning"
-],
+# ════════════════════════════════════════════════════════════
+#  SERVE FRONTEND
+#  Put your skillbridge.html in the same folder as app.py
+#  It will be served at http://localhost:5000
+# ════════════════════════════════════════════════════════════
 
-"Data Analyst": [
-"Excel",
-"SQL",
-"Python",
-"Data Visualization",
-"Statistics",
-"Power BI",
-"Tableau",
-"Data Cleaning"
-],
+@app.route("/")
+def index():
+    # Serve skillbridge.html from same directory
+    html_path = os.path.join(os.path.dirname(__file__), "skillbridge.html")
+    if os.path.exists(html_path):
+        with open(html_path, "r") as f:
+            return f.read()
+    return "<h2>Put skillbridge.html in the same folder as app.py</h2>", 404
 
-"Machine Learning Engineer": [
-"Python",
-"Machine Learning Algorithms",
-"TensorFlow",
-"PyTorch",
-"Statistics",
-"Data Processing",
-"Model Deployment"
-],
 
-"AI Engineer": [
-"Python",
-"Machine Learning",
-"Deep Learning",
-"TensorFlow",
-"PyTorch",
-"NLP",
-"Computer Vision"
-],
+# ════════════════════════════════════════════════════════════
+#  RUN
+# ════════════════════════════════════════════════════════════
 
-"Cyber Security Analyst": [
-"Networking",
-"Linux",
-"Security Monitoring",
-"Threat Analysis",
-"Firewalls",
-"SIEM Tools",
-"Incident Response"
-],
-
-"Ethical Hacker": [
-"Networking",
-"Linux",
-"Penetration Testing",
-"Vulnerability Assessment",
-"Cryptography",
-"Security Tools",
-"Kali Linux"
-],
-
-"Cloud Engineer": [
-"AWS",
-"Azure",
-"Google Cloud",
-"Networking",
-"Linux",
-"Cloud Security",
-"Virtualization"
-],
-
-"DevOps Engineer": [
-"Linux",
-"Docker",
-"Kubernetes",
-"CI/CD",
-"Automation",
-"Cloud Platforms",
-"Scripting"
-],
-
-"Network Engineer": [
-"Networking",
-"TCP/IP",
-"Routing",
-"Switching",
-"Firewalls",
-"Network Security"
-],
-
-"System Administrator": [
-"Linux",
-"Windows Server",
-"Networking",
-"System Monitoring",
-"Backup Systems",
-"User Management"
-],
-
-"Blockchain Developer": [
-"Solidity",
-"Ethereum",
-"Smart Contracts",
-"Cryptography",
-"Web3",
-"JavaScript"
-],
-
-"IoT Engineer": [
-"Embedded Systems",
-"C Programming",
-"Sensors",
-"Microcontrollers",
-"Networking",
-"Cloud Integration"
-],
-
-"UI Designer": [
-"Figma",
-"Adobe XD",
-"Wireframing",
-"Prototyping",
-"Color Theory",
-"Typography"
-],
-
-"UX Designer": [
-"User Research",
-"Wireframing",
-"Prototyping",
-"Usability Testing",
-"Interaction Design"
-],
-
-"Software Tester": [
-"Manual Testing",
-"Automation Testing",
-"Selenium",
-"Test Cases",
-"Bug Tracking",
-"Quality Assurance"
-],
-
-"QA Engineer": [
-"Software Testing",
-"Automation Tools",
-"Test Planning",
-"Performance Testing",
-"Bug Tracking",
-"Continuous Testing"
-]
-
-}
+if __name__ == "__main__":
+    print("\n" + "="*50)
+    print("  🌉  SkillBridge Flask Server Starting...")
+    print(f"  📦  Loaded {len(CAREERS)} careers")
+    print("  🌐  Open: http://localhost:5000")
+    print("="*50 + "\n")
+    app.run(debug=True, port=5000)
