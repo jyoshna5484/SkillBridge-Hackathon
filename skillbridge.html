@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SkillBridge</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#07080f;--surface:#0f1020;--card:#141628;--border:#1e2040;--accent:#4f8fff;--a2:#ff6b6b;--a3:#43e8a0;--a4:#ffd166;--text:#dde2f5;--muted:#5a6080;--glow:rgba(79,143,255,.2)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 70% 50% at 15% 5%,rgba(79,143,255,.1) 0%,transparent 55%),radial-gradient(ellipse 50% 40% at 85% 85%,rgba(255,107,107,.07) 0%,transparent 55%);pointer-events:none}
+.app{position:relative;z-index:1}
+header{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 2.5rem;border-bottom:1px solid var(--border);backdrop-filter:blur(14px);background:rgba(7,8,15,.85);position:sticky;top:0;z-index:200}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;background:linear-gradient(110deg,#4f8fff,#a78fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo em{-webkit-text-fill-color:var(--a3);font-style:normal}
+.tagline{font-size:.7rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
+.server-badge{font-size:.7rem;padding:.25rem .7rem;border-radius:99px;background:rgba(67,232,160,.1);border:1px solid rgba(67,232,160,.3);color:var(--a3);font-weight:600}
+main{max-width:1180px;margin:0 auto;padding:2.5rem 1.5rem 6rem}
+.steps{display:flex;align-items:center;gap:0}
+.sd{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:.72rem;border:2px solid var(--border);color:var(--muted);background:var(--surface);transition:all .3s}
+.sd.active{border-color:var(--accent);background:var(--accent);color:#fff;box-shadow:0 0 16px var(--glow)}
+.sd.done{border-color:var(--a3);color:var(--a3);background:rgba(67,232,160,.1)}
+.sl{width:32px;height:2px;background:var(--border);transition:background .3s}
+.sl.done{background:var(--a3)}
+.hero{text-align:center;margin:2rem 0 3rem;animation:fu .7s ease both}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(2rem,5vw,3.4rem);font-weight:800;line-height:1.1;letter-spacing:-1px;background:linear-gradient(130deg,#fff 25%,#4f8fff 65%,#a78fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.7rem}
+.hero p{color:var(--muted);font-size:1rem;max-width:460px;margin:0 auto}
+.screen{display:none}.screen.active{display:block;animation:fu .45s ease both}
+@keyframes fu{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.loading{display:flex;align-items:center;justify-content:center;gap:.8rem;padding:3rem;color:var(--muted);font-size:.9rem}
+.spinner{width:22px;height:22px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.search-wrap{position:relative;margin-bottom:1.2rem}
+.search-wrap input{width:100%;padding:.8rem 1.2rem .8rem 2.8rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.9rem;font-family:'DM Sans',sans-serif;outline:none;transition:border .2s}
+.search-wrap input:focus{border-color:var(--accent)}
+.search-wrap::before{content:'🔍';position:absolute;left:.85rem;top:50%;transform:translateY(-50%)}
+.filter-tabs{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.4rem}
+.ftab{padding:.32rem .85rem;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.76rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.ftab:hover{border-color:var(--accent);color:var(--accent)}
+.ftab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.career-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:.9rem}
+.cc{background:var(--surface);border:2px solid var(--border);border-radius:14px;padding:1.4rem 1.1rem;cursor:pointer;transition:all .22s;text-align:center;position:relative;overflow:hidden}
+.cc::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--accent),#a78fff);opacity:0;transition:opacity .22s}
+.cc:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 10px 28px var(--glow)}
+.cc:hover::before{opacity:.07}
+.cc.selected{border-color:var(--accent);background:rgba(79,143,255,.1);box-shadow:0 0 0 3px var(--glow)}
+.cc.hidden{display:none}
+.ci{font-size:2rem;margin-bottom:.5rem;display:block;position:relative;z-index:1}
+.cn{font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem;position:relative;z-index:1}
+.cd{font-size:.72rem;color:var(--muted);margin-top:.25rem;position:relative;z-index:1;line-height:1.3}
+.cat-badge{display:inline-block;margin-top:.4rem;font-size:.62rem;padding:.15rem .5rem;border-radius:99px;background:rgba(79,143,255,.12);color:var(--accent);font-weight:600;position:relative;z-index:1}
+.st{font-family:'Syne',sans-serif;font-weight:700;font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:.9rem;display:flex;align-items:center;gap:.5rem}
+.st::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.8rem;transition:border .2s}
+.card:hover{border-color:rgba(79,143,255,.25)}
+.two-col{display:grid;grid-template-columns:1fr 1.1fr;gap:1.4rem}
+@media(max-width:720px){.two-col{grid-template-columns:1fr}}
+.skill-list{display:flex;flex-direction:column;gap:.6rem}
+.si{display:flex;align-items:center;gap:.8rem;padding:.8rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:9px;cursor:pointer;transition:all .18s;user-select:none}
+.si:hover{border-color:var(--accent);background:rgba(79,143,255,.05)}
+.si.checked{border-color:var(--a3);background:rgba(67,232,160,.06)}
+.sc{width:20px;height:20px;border-radius:5px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s;font-size:.75rem}
+.si.checked .sc{background:var(--a3);border-color:var(--a3);color:#07080f}
+.sn{font-size:.88rem;font-weight:500;flex:1}
+.stag{font-size:.62rem;padding:.15rem .5rem;border-radius:99px;font-weight:600}
+.tag-core{background:rgba(79,143,255,.15);color:var(--accent)}
+.tag-tool{background:rgba(255,107,107,.12);color:var(--a2)}
+.tag-soft{background:rgba(67,232,160,.12);color:var(--a3)}
+.prog-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.5rem}
+.prog-label{font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem}
+.prog-pct{font-family:'Syne',sans-serif;font-weight:800;font-size:2.2rem;transition:color .4s}
+.prog-pct.low{color:var(--a2)}.prog-pct.mid{color:var(--a4)}.prog-pct.high{color:var(--a3)}
+.prog-track{height:9px;background:var(--surface);border-radius:99px;overflow:hidden;border:1px solid var(--border)}
+.prog-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--a2));transition:width .65s cubic-bezier(.4,0,.2,1)}
+.prog-fill.high{background:linear-gradient(90deg,var(--accent),var(--a3))}
+.prog-sub{font-size:.75rem;color:var(--muted);margin-top:.4rem}
+.miss-list{display:flex;flex-wrap:wrap;gap:.5rem}
+.miss-chip{padding:.35rem .85rem;border-radius:99px;background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.2);color:var(--a2);font-size:.78rem;font-weight:500}
+.rm-list{display:flex;flex-direction:column;gap:0}
+.rm-item{display:flex;gap:1rem;position:relative}
+.rm-item:not(:last-child)::after{content:'';position:absolute;left:13px;top:30px;width:2px;height:calc(100% - 4px);background:linear-gradient(180deg,var(--accent),transparent)}
+.rm-num{width:28px;height:28px;border-radius:50%;flex-shrink:0;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:.72rem;box-shadow:0 0 12px var(--glow);z-index:1}
+.rm-body{padding-bottom:1.4rem;flex:1}
+.rm-step{font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem;margin-bottom:.15rem}
+.rm-desc{font-size:.78rem;color:var(--muted)}
+.res-sec{margin-bottom:1.3rem}
+.res-skill{font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;color:var(--accent);margin-bottom:.5rem}
+.res-links{display:flex;flex-direction:column;gap:.4rem}
+.res-link{display:flex;align-items:center;gap:.6rem;padding:.55rem .9rem;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--text);text-decoration:none;font-size:.8rem;transition:all .18s}
+.res-link:hover{border-color:var(--accent);color:var(--accent);transform:translateX(3px)}
+.res-type{font-size:.62rem;padding:.12rem .45rem;border-radius:4px;font-weight:700;flex-shrink:0}
+.t-yt{background:rgba(255,107,107,.15);color:var(--a2)}
+.t-course{background:rgba(79,143,255,.15);color:var(--accent)}
+.t-practice{background:rgba(67,232,160,.12);color:var(--a3)}
+.congrats{text-align:center;padding:3rem 2rem;background:radial-gradient(ellipse at center,rgba(67,232,160,.08) 0%,transparent 65%);border:2px solid var(--a3);border-radius:20px}
+.congrats-icon{font-size:4rem;display:block;margin-bottom:1rem;animation:pulse 2s infinite}
+.congrats h2{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;background:linear-gradient(135deg,var(--a3),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.5rem}
+.congrats p{color:var(--muted)}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.btn{display:inline-flex;align-items:center;gap:.45rem;padding:.7rem 1.6rem;border-radius:9px;font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;border:none;cursor:pointer;transition:all .2s}
+.btn-p{background:linear-gradient(135deg,var(--accent),#3a6fd4);color:#fff;box-shadow:0 5px 18px var(--glow)}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 24px var(--glow)}
+.btn-p:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.btn-g{background:transparent;border:1px solid var(--border);color:var(--muted)}
+.btn-g:hover{border-color:var(--accent);color:var(--accent)}
+.btn-row{display:flex;gap:.7rem;margin-top:1.4rem;flex-wrap:wrap}
+.career-hdr{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;padding:1rem 1.4rem;background:var(--surface);border:1px solid var(--border);border-radius:12px}
+.career-hdr .ci2{font-size:2.4rem}
+.career-hdr h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem}
+.career-hdr p{font-size:.82rem;color:var(--muted)}
+.scroll-area{max-height:420px;overflow-y:auto;padding-right:.3rem}
+.scroll-area::-webkit-scrollbar{width:4px}
+.scroll-area::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+.error-box{text-align:center;padding:2rem;color:var(--a2);border:1px solid rgba(255,107,107,.3);border-radius:12px;background:rgba(255,107,107,.05);line-height:2}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div>
+    <div class="logo">Skill<em>Bridge</em></div>
+    <div class="tagline">Career Readiness &amp; Learning Assistant</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:1rem">
+    <span class="server-badge">🟢 Flask Connected</span>
+    <div class="steps" id="stepDots"></div>
+  </div>
+</header>
+<main>
+
+<!-- S1 -->
+<div class="screen active" id="s1">
+  <div class="hero">
+    <h1>Find Your Career Path</h1>
+    <p>Select a career to see required skills, track your readiness, and get a personalized learning roadmap.</p>
+  </div>
+  <div class="search-wrap"><input type="text" id="searchInput" placeholder="Search careers... (e.g. Data, Cloud, Security)" oninput="filterCareers()"/></div>
+  <div class="filter-tabs" id="filterTabs"></div>
+  <div id="careerGrid"><div class="loading"><div class="spinner"></div> Loading careers from Flask server...</div></div>
+  <div class="btn-row" style="justify-content:flex-end;margin-top:1.2rem">
+    <button class="btn btn-p" id="btnNext1" disabled onclick="goTo(2)">View Required Skills →</button>
+  </div>
+</div>
+
+<!-- S2 -->
+<div class="screen" id="s2">
+  <div class="career-hdr" id="careerHdr"></div>
+  <div class="two-col">
+    <div>
+      <div class="card" style="margin-bottom:1.2rem">
+        <div class="st">Career Readiness</div>
+        <div class="prog-header">
+          <div class="prog-label">Readiness Score</div>
+          <div class="prog-pct low" id="pctDisp">0%</div>
+        </div>
+        <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+        <div class="prog-sub" id="progSub">Check the skills you already know →</div>
+      </div>
+      <div class="card">
+        <div class="st">Missing Skills</div>
+        <div class="miss-list" id="missList"><span style="color:var(--muted);font-size:.82rem">Mark your known skills to see gaps.</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="st">Required Skills — <span id="skillCount" style="color:var(--text);text-transform:none;letter-spacing:0;font-size:1.2em"></span></div>
+      <div class="scroll-area"><div class="skill-list" id="skillList"></div></div>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-g" onclick="goTo(1)">← Back</button>
+    <button class="btn btn-p" onclick="submitProgress()">View My Roadmap →</button>
+  </div>
+</div>
+
+<!-- S3 -->
+<div class="screen" id="s3">
+  <div class="career-hdr" id="careerHdr2"></div>
+  <div id="congratsBlock" style="display:none" class="congrats">
+    <span class="congrats-icon">🎉</span>
+    <h2>You're Career Ready!</h2>
+    <p>Congratulations! You've mastered all required skills.<br/>You are fully prepared to pursue this career!</p>
+  </div>
+  <div id="roadmapBlock">
+    <div id="roadmapLoading" class="loading" style="display:none"><div class="spinner"></div> Getting your personalized roadmap from server...</div>
+    <div class="two-col" id="roadmapContent">
+      <div class="card"><div class="st">Learning Roadmap</div><div class="rm-list" id="rmList"></div></div>
+      <div class="card"><div class="st">Learning Resources</div><div class="scroll-area" id="resList"></div></div>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-g" onclick="goTo(2)">← Back to Skills</button>
+    <button class="btn btn-p" onclick="goTo(1)">🔄 Try Another Career</button>
+  </div>
+</div>
+
+</main>
+</div>
+<script>
+const API="http://localhost:5000";
+let allCareers=[],selected=null,known=new Set(),screen=1,activeFilter="All",progressData=null;
+
+async function init(){
+  renderSteps();
+  try{
+    const res=await fetch(`${API}/api/careers`);
+    const data=await res.json();
+    allCareers=data.careers;
+    buildFilters();renderGrid();
+  }catch(e){
+    document.getElementById("careerGrid").innerHTML=
+      `<div class="error-box">❌ Cannot connect to Flask server.<br/>
+      Run: <strong>pip install flask</strong> then <strong>python app.py</strong><br/>
+      Then open: <strong>http://localhost:5000</strong></div>`;
+  }
+}
+
+function buildFilters(){
+  const cats=["All",...new Set(allCareers.map(c=>c.cat))];
+  document.getElementById("filterTabs").innerHTML=cats.map(c=>
+    `<button class="ftab${c==="All"?" active":""}" onclick="setFilter('${c}')">${c}</button>`).join("");
+}
+function setFilter(cat){
+  activeFilter=cat;
+  document.querySelectorAll(".ftab").forEach(b=>b.classList.toggle("active",b.textContent===cat));
+  filterCareers();
+}
+function filterCareers(){
+  const q=document.getElementById("searchInput").value.toLowerCase();
+  document.querySelectorAll(".cc").forEach(card=>{
+    const match=(!q||card.dataset.name.toLowerCase().includes(q)||card.dataset.cat.toLowerCase().includes(q))
+      &&(activeFilter==="All"||card.dataset.cat===activeFilter);
+    card.classList.toggle("hidden",!match);
+  });
+}
+function renderGrid(){
+  document.getElementById("careerGrid").innerHTML=allCareers.map((c,i)=>
+    `<div class="cc${selected?.id===c.id?" selected":""}" data-id="${c.id}" data-name="${c.name}" data-cat="${c.cat}"
+      onclick="pick('${c.id}')" style="animation:fu .4s ${i*.03}s ease both">
+      <span class="ci">${c.icon}</span><div class="cn">${c.name}</div>
+      <div class="cd">${c.desc}</div><span class="cat-badge">${c.cat}</span>
+    </div>`).join("");
+}
+async function pick(id){
+  try{
+    const res=await fetch(`${API}/api/career/${id}`);
+    selected=await res.json();known=new Set();
+    renderGrid();document.getElementById("btnNext1").disabled=false;
+  }catch(e){alert("Error loading career. Is Flask running?");}
+}
+function renderSteps(){
+  document.getElementById("stepDots").innerHTML=["Career","Skills","Roadmap"].map((l,i)=>{
+    const n=i+1,cls=n<screen?"sd done":n===screen?"sd active":"sd",ico=n<screen?"✓":n;
+    return `${i>0?`<div class="sl${n<=screen?" done":""}"></div>`:""}<div class="${cls}">${ico}</div>`;
+  }).join("");
+}
+function renderSkillScreen(){
+  document.getElementById("careerHdr").innerHTML=
+    `<span class="ci2">${selected.icon}</span><div><h2>${selected.name}</h2><p>${selected.desc}</p></div>`;
+  document.getElementById("skillCount").textContent=`${selected.skills.length} skills`;
+  document.getElementById("skillList").innerHTML=selected.skills.map(s=>
+    `<div class="si${known.has(s.id)?" checked":""}" onclick="toggle('${s.id}')">
+      <div class="sc">${known.has(s.id)?"✓":""}</div>
+      <div class="sn">${s.name}</div><span class="stag tag-${s.tag}">${s.tag}</span>
+    </div>`).join("");
+  updateProgressLocal();
+}
+function toggle(id){known.has(id)?known.delete(id):known.add(id);renderSkillScreen();}
+function updateProgressLocal(){
+  const total=selected.skills.length,done=known.size,pct=Math.round(done/total*100);
+  const pEl=document.getElementById("pctDisp");
+  pEl.textContent=pct+"%";pEl.className="prog-pct "+(pct>=70?"high":pct>=35?"mid":"low");
+  const fill=document.getElementById("progFill");
+  fill.style.width=pct+"%";fill.className="prog-fill"+(pct>=70?" high":"");
+  document.getElementById("progSub").textContent=done===total?"🎉 You know all required skills!":`${done} of ${total} skills mastered`;
+  const missing=selected.skills.filter(s=>!known.has(s.id));
+  document.getElementById("missList").innerHTML=missing.length===0
+    ?`<span style="color:var(--a3);font-weight:600">✓ No missing skills!</span>`
+    :missing.map(s=>`<div class="miss-chip">⚡ ${s.name}</div>`).join("");
+}
+async function submitProgress(){
+  goTo(3);
+  document.getElementById("roadmapLoading").style.display="flex";
+  document.getElementById("roadmapContent").style.display="none";
+  try{
+    const res=await fetch(`${API}/api/progress`,{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({career_id:selected.id,known_skills:[...known]})
+    });
+    progressData=await res.json();
+    renderRoadmapScreen();
+  }catch(e){
+    document.getElementById("roadmapLoading").style.display="none";
+    document.getElementById("roadmapContent").innerHTML=
+      `<div class="error-box">❌ Error contacting Flask server. Is it running?</div>`;
+    document.getElementById("roadmapContent").style.display="block";
+  }
+}
+function renderRoadmapScreen(){
+  document.getElementById("roadmapLoading").style.display="none";
+  document.getElementById("careerHdr2").innerHTML=
+    `<span class="ci2">${selected.icon}</span>
+     <div><h2>${selected.name}</h2>
+     <p>Readiness: <strong style="color:var(--a3)">${progressData.readiness_pct}%</strong>
+     — ${progressData.known_count}/${progressData.total_skills} skills mastered</p></div>`;
+  const allDone=progressData.career_ready;
+  document.getElementById("congratsBlock").style.display=allDone?"block":"none";
+  const rc=document.getElementById("roadmapContent");
+  rc.style.display=allDone?"none":"grid";
+  if(!allDone){
+    document.getElementById("rmList").innerHTML=progressData.roadmap.map((r,i)=>
+      `<div class="rm-item" style="animation:fu .4s ${i*.07}s ease both">
+        <div class="rm-num">${i+1}</div>
+        <div class="rm-body"><div class="rm-step">${r.s}</div><div class="rm-desc">${r.d}</div></div>
+      </div>`).join("");
+    const tC={"📺":"t-yt","📖":"t-course","🏋":"t-practice"};
+    const tL={"📺":"▶ Video","📖":"📖 Course","🏋":"🏋 Practice"};
+    document.getElementById("resList").innerHTML=Object.entries(progressData.resources).map(([skillName,links])=>
+      `<div class="res-sec"><div class="res-skill">⚡ ${skillName}</div>
+       <div class="res-links">${links.map(l=>{
+         const e=l.trim().charAt(0),label=l.split(":")[0].slice(2).trim(),url="https:"+l.split(":").slice(2).join(":");
+         return `<a class="res-link" href="${url}" target="_blank" rel="noopener">
+           <span class="res-type ${tC[e]||"t-course"}">${tL[e]||"📖 Course"}</span>
+           ${label}<span style="margin-left:auto;opacity:.35;font-size:.72rem">↗</span></a>`;
+       }).join("")}</div></div>`).join("")
+      ||`<p style="color:var(--muted);font-size:.82rem">Complete all skills to unlock resources!</p>`;
+  }
+}
+function goTo(n){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById("s"+n).classList.add("active");
+  screen=n;renderSteps();
+  if(n===2)renderSkillScreen();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+init();
+</script>
+</body>
+</html>
